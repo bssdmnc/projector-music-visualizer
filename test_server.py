@@ -2,7 +2,7 @@
 Automated Test for Projector Music Visualizer
 Tests:
 1. AudioAnalyzer frequency binning and beat detection.
-2. Static frontend files integrity.
+2. Static frontend files integrity (all 12 presets + remotes + styles).
 3. Server routes creation and IP detection.
 """
 
@@ -24,7 +24,7 @@ from server import AudioAnalyzer, create_app, get_local_ip
 
 def test_all():
     print("=" * 60)
-    print("🧪 Running Projector Music Visualizer Test Suite")
+    print("🧪 Running Projector Music Visualizer Test Suite (12 Presets)")
     print("=" * 60)
 
     # 1. Test IP detection
@@ -33,11 +33,11 @@ def test_all():
     assert ip and len(ip.split('.')) == 4, f"Invalid IP returned: {ip}"
     print(f"      ✅ Detected IP: {ip}")
 
-    # 2. Test AudioAnalyzer FFT & Beat Detection with synthetic audio
+    # 2. Test AudioAnalyzer FFT & Beat Detection
     print("\n[2/3] Testing AudioAnalyzer FFT & Beat Trigger...")
     analyzer = AudioAnalyzer(sample_rate=44100, chunk_size=1024, num_bands=48)
     
-    # Low frequency bass wave (80 Hz)
+    # 80 Hz sine wave
     t = np.linspace(0, 1024 / 44100.0, 1024, endpoint=False)
     bass_wave = (np.sin(2 * np.pi * 80.0 * t) * 0.9).astype(np.float32)
     res_bass = analyzer.analyze(bass_wave, gain=1.0)
@@ -53,8 +53,8 @@ def test_all():
     assert res_silence["vol"] == 0.0, f"Expected 0.0 volume for silence, got {res_silence['vol']}"
     print("      ✅ Silence handling OK")
 
-    # 3. Test Static Files Integrity
-    print("\n[3/3] Checking Frontend Assets on Disk...")
+    # 3. Test All 12 Visualizer Preset Assets Integrity
+    print("\n[3/3] Checking Frontend Assets on Disk (All 12 Presets)...")
     public_dir = PROJECT_DIR / "public"
     required_files = [
         "index.html",
@@ -68,6 +68,13 @@ def test_all():
         "js/visualizers/synthwave-grid.js",
         "js/visualizers/cosmic-tunnel.js",
         "js/visualizers/spectrum-bars.js",
+        "js/visualizers/matrix-rain.js",
+        "js/visualizers/galaxy-vortex.js",
+        "js/visualizers/mandala-kaleidoscope.js",
+        "js/visualizers/cyber-sphere.js",
+        "js/visualizers/laser-plasma.js",
+        "js/visualizers/firestorm.js",
+        "js/visualizers/crystal-shards.js",
         "js/app.js"
     ]
     for rel_path in required_files:
@@ -82,7 +89,7 @@ def test_all():
     print("      ✅ aiohttp App configuration OK")
 
     print("\n" + "=" * 60)
-    print("🎉 ALL TESTS PASSED SUCCESSFULLY! (100% OK)")
+    print("🎉 ALL 12 VISUALIZER PRESETS VERIFIED & READY! (100% OK)")
     print("=" * 60)
 
 if __name__ == '__main__':

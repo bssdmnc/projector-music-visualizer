@@ -185,41 +185,49 @@ body.hide-cursor * {
 /* Bottom Control Dock */
 .bottom-dock {
   position: absolute;
-  bottom: 24px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: var(--hud-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--hud-border);
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  max-width: 90vw;
+  max-width: 95vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bottom-dock::-webkit-scrollbar {
+  display: none;
 }
 
 .preset-selector {
   display: flex;
-  gap: 6px;
+  gap: 5px;
+  flex-wrap: nowrap;
 }
 
 .preset-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid transparent;
   color: var(--text-muted);
-  padding: 8px 14px;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  padding: 6px 11px;
+  border-radius: 10px;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .preset-btn:hover {

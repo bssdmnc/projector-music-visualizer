@@ -1,6 +1,6 @@
 /**
  * Master Application Controller
- * Coordinates audio telemetry, dual canvases (WebGL + 2D), visualizer presets, hotkeys, and HUD.
+ * Coordinates audio telemetry, dual canvases (WebGL + 2D), 12 visualizer presets, hotkeys, and HUD.
  */
 
 (function() {
@@ -16,14 +16,21 @@
   // Audio Client
   const audio = new AudioClient();
 
-  // Visualizer presets registry
-  // Preset 0 uses WebGL; Presets 1..4 use Canvas 2D
+  // Visualizer presets registry (12 total presets)
+  // Preset 0 uses WebGL; Presets 1..11 use Canvas 2D
   const visualizers = [
-    new LiquidAcidVisualizer(canvasWebgl),
-    new NeonRingVisualizer(canvas2d),
-    new SynthwaveGridVisualizer(canvas2d),
-    new CosmicTunnelVisualizer(canvas2d),
-    new SpectrumBarsVisualizer(canvas2d)
+    new LiquidAcidVisualizer(canvasWebgl),           // 0: 🧪 Кислота
+    new NeonRingVisualizer(canvas2d),               // 1: ⭕ Кольцо
+    new SynthwaveGridVisualizer(canvas2d),          // 2: 🌆 Ретро 80-е
+    new CosmicTunnelVisualizer(canvas2d),           // 3: 🌌 Космос
+    new SpectrumBarsVisualizer(canvas2d),           // 4: 📊 3D Бары
+    new MatrixRainVisualizer(canvas2d),             // 5: 💻 Матрица
+    new GalaxyVortexVisualizer(canvas2d),           // 6: 🌀 Галактика
+    new MandalaKaleidoscopeVisualizer(canvas2d),    // 7: 🌸 Мандала
+    new CyberSphereVisualizer(canvas2d),            // 8: 🌐 3D Сфера
+    new LaserPlasmaVisualizer(canvas2d),            // 9: ⚡ Лазер
+    new FirestormVisualizer(canvas2d),              // 10: 🔥 Огонь
+    new CrystalShardsVisualizer(canvas2d)           // 11: 💎 Кристаллы
   ];
 
   let currentPresetIndex = 0;
@@ -64,9 +71,13 @@
     const activeViz = visualizers[currentPresetIndex];
     activeViz.setPalette(window.getPalette(currentPaletteName));
 
-    // Update UI Buttons
+    // Update UI Buttons & scroll active into view
     document.querySelectorAll('.preset-btn').forEach((btn, i) => {
-      btn.classList.toggle('active', i === currentPresetIndex);
+      const isActive = (i === currentPresetIndex);
+      btn.classList.toggle('active', isActive);
+      if (isActive) {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
     });
 
     if (notifyServer) {
@@ -154,10 +165,22 @@
   // Keyboard Hotkeys
   // ==========================================================================
   window.addEventListener('keydown', (e) => {
-    // Number keys 1 - 5: Select preset
-    if (e.key >= '1' && e.key <= '5') {
+    // Number keys 1 - 9: Presets 0 - 8
+    if (e.key >= '1' && e.key <= '9') {
       const idx = parseInt(e.key) - 1;
       if (idx < visualizers.length) setPreset(idx);
+    }
+    // '0': Preset 9 (Laser Plasma)
+    else if (e.key === '0') {
+      setPreset(9);
+    }
+    // '-': Preset 10 (Firestorm)
+    else if (e.key === '-' || e.key === '_') {
+      setPreset(10);
+    }
+    // '=': Preset 11 (Crystal Shards)
+    else if (e.key === '=' || e.key === '+') {
+      setPreset(11);
     }
     // Space: Next preset
     else if (e.code === 'Space') {
