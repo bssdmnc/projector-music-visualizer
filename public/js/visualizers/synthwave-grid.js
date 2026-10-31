@@ -87,26 +87,24 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
     ctx.arc(sunX, sunY, sunRadius * 1.9, 0, Math.PI * 2);
     ctx.fill();
 
-    // Sun gradient body
+    // Sun gradient body (Solid glowing orb without black stripes)
     const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-    sunGrad.addColorStop(0, '#fff000');
-    sunGrad.addColorStop(0.5, this.palette.secondary);
+    sunGrad.addColorStop(0, '#fff5b0');
+    sunGrad.addColorStop(0.35, this.palette.secondary);
     sunGrad.addColorStop(1, this.palette.primary);
     ctx.fillStyle = sunGrad;
     ctx.beginPath();
     ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Retro horizontal scanline slits
-    const numSlits = 8;
-    ctx.fillStyle = '#040108';
-    for (let i = 0; i < numSlits; i++) {
-      const slitY = sunY + (i / numSlits) * sunRadius;
-      const slitHeight = 3 + i * 2.8;
-      if (slitY + slitHeight < horizonY) {
-        ctx.fillRect(sunX - sunRadius - 15, slitY, (sunRadius + 15) * 2, slitHeight);
-      }
-    }
+    // Radiant outer sun rim
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.0 + audio.smoothBass * 2.5;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 14;
+    ctx.globalAlpha = 0.85;
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
     ctx.restore();
 
     // 3. Terrain & Road Simulation

@@ -23,7 +23,7 @@ from server import AudioAnalyzer, create_app, get_local_ip
 
 def test_all():
     print("=" * 65)
-    print("🧪 Running Projector Music Visualizer Test Suite (18 Presets)")
+    print("🧪 Running Projector Music Visualizer Test Suite (15 Presets)")
     print("=" * 65)
 
     # 1. Test IP detection
@@ -51,8 +51,8 @@ def test_all():
     assert res_silence["vol"] == 0.0, f"Expected 0.0 volume for silence, got {res_silence['vol']}"
     print("      ✅ Silence handling OK")
 
-    # 3. Test All 18 Visualizer Preset Assets Integrity
-    print("\n[3/3] Checking Frontend Assets on Disk (All 18 Presets + 7 GPU Shaders)...")
+    # 3. Test All 15 Visualizer Preset Assets Integrity
+    print("\n[3/3] Checking Frontend Assets on Disk (All 15 Presets + 7 GPU Shaders)...")
     public_dir = PROJECT_DIR / "public"
     required_files = [
         "index.html",
@@ -70,17 +70,14 @@ def test_all():
         "js/visualizers/cyber-city.js",
         "js/visualizers/biolum-abyss.js",
         "js/visualizers/kaleido-temple.js",
-        # 11 Geometry & Particle visualizers
+        # 8 Geometry & Particle visualizers
         "js/visualizers/neon-ring.js",
         "js/visualizers/synthwave-grid.js",
-        "js/visualizers/cosmic-tunnel.js",
         "js/visualizers/spectrum-bars.js",
         "js/visualizers/matrix-rain.js",
         "js/visualizers/galaxy-vortex.js",
         "js/visualizers/mandala-kaleidoscope.js",
         "js/visualizers/cyber-sphere.js",
-        "js/visualizers/laser-plasma.js",
-        "js/visualizers/firestorm.js",
         "js/visualizers/crystal-shards.js",
         "js/app.js"
     ]
@@ -96,7 +93,7 @@ def test_all():
     print("      ✅ aiohttp App configuration OK")
 
     print("\n" + "=" * 65)
-    print("🎉 ALL 18 VISUALIZER PRESETS (7 SHADERS) VERIFIED! (100% OK)")
+    print("🎉 ALL 15 VISUALIZER PRESETS (7 SHADERS) VERIFIED! (100% OK)")
     print("=" * 65)
 
 if __name__ == '__main__':

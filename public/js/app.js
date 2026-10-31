@@ -16,9 +16,9 @@
   // Audio Client
   const audio = new AudioClient();
 
-  // 18 Visualizer Presets:
+  // 15 Visualizer Presets:
   // Presets 0..6: High-end GPU GLSL WebGL Shaders
-  // Presets 7..17: Canvas 2D/3D Particle & Geometry engines
+  // Presets 7..14: Canvas 2D/3D Particle & Geometry engines
   const visualizers = [
     // --- 7 AAA GPU Raymarched Shaders ---
     new LiquidAcidVisualizer(canvasWebgl),           // 0: 🧪 Кислота
@@ -29,18 +29,15 @@
     new BiolumAbyssVisualizer(canvasWebgl),          // 5: 🪼 Био-Бездна
     new KaleidoTempleVisualizer(canvasWebgl),        // 6: 🏛️ Калейдо-Храм KIFS
 
-    // --- 11 Canvas 2D/3D Engines ---
+    // --- 8 Canvas 2D/3D Engines ---
     new NeonRingVisualizer(canvas2d),               // 7: ⭕ Кольцо
     new SynthwaveGridVisualizer(canvas2d),          // 8: 🌅 Ретровейв
-    new CosmicTunnelVisualizer(canvas2d),           // 9: 🚀 Туннель
-    new SpectrumBarsVisualizer(canvas2d),           // 10: 📊 3D Бары
-    new MatrixRainVisualizer(canvas2d),             // 11: 💻 Матрица
-    new GalaxyVortexVisualizer(canvas2d),           // 12: 🌀 Галактика
-    new MandalaKaleidoscopeVisualizer(canvas2d),    // 13: 🌸 Мандала
-    new CyberSphereVisualizer(canvas2d),            // 14: 🌐 3D Сфера
-    new LaserPlasmaVisualizer(canvas2d),            // 15: ⚡ Лазер
-    new FirestormVisualizer(canvas2d),              // 16: 🔥 Огонь
-    new CrystalShardsVisualizer(canvas2d)           // 17: 💎 Кристаллы
+    new SpectrumBarsVisualizer(canvas2d),           // 9: 📊 3D Бары
+    new MatrixRainVisualizer(canvas2d),             // 10: 💻 Матрица
+    new GalaxyVortexVisualizer(canvas2d),           // 11: 🌀 Галактика
+    new MandalaKaleidoscopeVisualizer(canvas2d),    // 12: 🌸 Мандала
+    new CyberSphereVisualizer(canvas2d),            // 13: 🌐 3D Сфера
+    new CrystalShardsVisualizer(canvas2d)           // 14: 💎 Кристаллы
   ];
 
   let currentPresetIndex = 0;
@@ -202,7 +199,7 @@
     else if (e.key === '=' || e.key === '+') {
       setPreset(11);
     }
-    // Space: Next preset (cycle through all 18)
+    // Space: Next preset (cycle through all 15)
     else if (e.code === 'Space') {
       e.preventDefault();
       setPreset((currentPresetIndex + 1) % visualizers.length);
