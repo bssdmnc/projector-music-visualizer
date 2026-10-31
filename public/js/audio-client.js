@@ -30,6 +30,8 @@ class AudioClient {
     this.onStateChange = null;
     this.onBeat = null;
     this.onConnectionChange = null;
+    this.onDeviceChange = null;
+    this.activeDevice = 'Auto';
     
     // Browser fallback support
     this.webAudioCtx = null;
@@ -74,7 +76,14 @@ class AudioClient {
 
         if (data.type === 'audio') {
           this.handleAudioFrame(data);
+        } else if (data.type === 'device_info') {
+          this.activeDevice = data.device;
+          if (this.onDeviceChange) this.onDeviceChange(data.device, data.devices);
         } else if (data.type === 'state') {
+          if (data.device) {
+            this.activeDevice = data.device;
+            if (this.onDeviceChange) this.onDeviceChange(data.device, data.devices);
+          }
           if (this.onStateChange) this.onStateChange(data);
         } else if (['set_preset', 'set_palette', 'set_gain', 'set_strobe'].includes(data.type)) {
           if (this.onStateChange) this.onStateChange(data);

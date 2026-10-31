@@ -132,14 +132,23 @@
     }
   };
 
-  // Connection status
+  // Connection status & Active Device
   audio.onConnectionChange = (connected) => {
     if (connected) {
       statusDot.classList.add('connected');
-      statusText.textContent = 'WASAPI Live';
+      statusText.textContent = audio.activeDevice || 'WASAPI Live';
     } else {
       statusDot.classList.remove('connected');
       statusText.textContent = 'Connecting...';
+    }
+  };
+
+  audio.onDeviceChange = (device) => {
+    if (statusText) {
+      let shortName = device.replace('Speakers (', '').replace(')', '').replace(' - ', ' ');
+      if (shortName.length > 22) shortName = shortName.substring(0, 20) + '..';
+      statusText.textContent = shortName;
+      statusText.title = `Активное аудиоустройство: ${device}`;
     }
   };
 

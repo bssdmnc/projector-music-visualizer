@@ -2,6 +2,7 @@
 Projector Music Visualizer - Backend Server
 Captures system audio loopback via WASAPI, calculates real-time FFT frequency bands
 and beat detection with dynamic acoustic scaling, and streams telemetry via WebSockets.
+Features dynamic auto-switching between audio devices (Realtek, Steam Streaming, USB, HDMI).
 """
 
 import asyncio
@@ -32,6 +33,8 @@ current_preset = 0
 current_palette = "cyberpunk"
 current_gain = 1.0
 current_strobe = True
+selected_device_name = "auto"
+active_device_name = "Detecting..."
 
 def get_local_ip():
     """Retrieve local LAN IP for mobile remote connection without network blocking."""
@@ -47,6 +50,46 @@ def get_local_ip():
             return socket.gethostbyname(socket.gethostname())
         except Exception:
             return '127.0.0.1'
+
+def get_available_audio_devices():
+    """List names of all connected output speakers."""
+    devices = []
+    try:
+        for spk in sc.all_speakers():
+            devices.append(spk.name)
+    except Exception:
+        pass
+    return devices
+
+def find_playing_speaker():
+    """Probe all speakers to find the one actively playing audio."""
+    candidates = []
+    try:
+        for spk in sc.all_speakers():
+            try:
+                mic = sc.get_microphone(id=str(spk.name), include_loopback=True)
+                with mic.recorder(samplerate=SAMPLE_RATE) as rec:
+                    data = rec.record(numframes=512)
+                    peak = float(np.max(np.abs(data)))
+                    if peak > 0.003:
+                        candidates.append((peak, mic))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    if candidates:
+        candidates.sort(key=lambda x: x[0], reverse=True)
+        return candidates[0][1]
+
+    # Fallback to system default speaker
+    try:
+        default_spk = sc.default_speaker()
+        return sc.get_microphone(id=str(default_spk.name), include_loopback=True)
+    except Exception:
+        all_mics = sc.all_microphones(include_loopback=True)
+        return [m for m in all_mics if m.isloopback][0]
+
 
 class AudioAnalyzer:
     def __init__(self, sample_rate=SAMPLE_RATE, chunk_size=CHUNK_SIZE, num_bands=NUM_BANDS):
@@ -97,18 +140,16 @@ class AudioAnalyzer:
         windowed = mono * self.window
         fft_norm = np.abs(np.fft.rfft(windowed)) / (self.chunk_size / 2.0)
 
-        # Calculate energy per band with balanced acoustic tilt (natural human loudness curve)
+        # Calculate energy per band with balanced acoustic tilt
         bands = np.zeros(self.num_bands)
         for i, idx in enumerate(self.bin_indices):
             energy = np.mean(fft_norm[idx]) if len(idx) > 0 else 0.0
-            # Sqrt acoustic compression + frequency tilt (higher frequencies need slight boost)
             tilt = 1.6 + (i / self.num_bands) * 3.4
             bands[i] = np.sqrt(energy) * tilt * gain
 
-        # Clip within [0, 1] range
         bands = np.clip(bands, 0.0, 1.0)
         
-        # Smooth bands with fast rise, smooth fall
+        # Smooth bands with fast attack, smooth decay
         for i in range(self.num_bands):
             if bands[i] > self.smoothed_bands[i]:
                 self.smoothed_bands[i] = bands[i]
@@ -135,8 +176,8 @@ class AudioAnalyzer:
         is_beat = False
         beat_intensity = 0.0
         
-        # Kick trigger: sudden jump in bass energy or strong threshold over rolling average
-        if (onset > 0.07 or (bass > avg_bass * 1.22 and bass > 0.18)) and (now - self.last_beat_time) > 0.18:
+        # Kick trigger condition
+        if (onset > 0.06 or (bass > avg_bass * 1.22 and bass > 0.16)) and (now - self.last_beat_time) > 0.18:
             is_beat = True
             beat_intensity = min(1.0, float(max(onset * 3.0, (bass - avg_bass) / max(0.1, avg_bass))))
             self.last_beat_time = now
@@ -153,47 +194,58 @@ class AudioAnalyzer:
         }
 
 
-def find_active_loopback_mic():
-    """Find the speaker with active sound playing, or fallback to default speaker."""
-    default_spk = sc.default_speaker()
-    active_mic = None
-    max_peak = 0.0
-    for spk in sc.all_speakers():
-        try:
-            mic = sc.get_microphone(id=str(spk.name), include_loopback=True)
-            with mic.recorder(samplerate=SAMPLE_RATE) as rec:
-                data = rec.record(numframes=512)
-                peak = np.max(np.abs(data))
-                if peak > max_peak:
-                    max_peak = peak
-                    active_mic = mic
-        except Exception:
-            pass
-    if active_mic and max_peak > 0.005:
-        return active_mic
-    return sc.get_microphone(id=str(default_spk.name), include_loopback=True)
-
-
-# Dedicated thread for WASAPI loopback audio capture
+# Dedicated thread for dynamic WASAPI loopback audio capture
 def audio_capture_loop(loop, analyzer):
-    global current_gain
-    print("🎧 Initializing Windows WASAPI Loopback Capture...", flush=True)
+    global current_gain, selected_device_name, active_device_name
+    print("🎧 Starting Dynamic Audio Capture Loop...", flush=True)
     
     while True:
         try:
-            loopback_mic = find_active_loopback_mic()
-            print(f"✨ Recording loopback from: {loopback_mic.name}", flush=True)
+            if selected_device_name and selected_device_name != "auto":
+                loopback_mic = sc.get_microphone(id=selected_device_name, include_loopback=True)
+            else:
+                loopback_mic = find_playing_speaker()
+                
+            active_device_name = loopback_mic.name
+            print(f"✨ Recording loopback from: {active_device_name}", flush=True)
             
+            # Broadcast device name to clients
+            asyncio.run_coroutine_threadsafe(
+                broadcast_message(json.dumps({
+                    "type": "device_info", 
+                    "device": active_device_name,
+                    "devices": get_available_audio_devices()
+                })), 
+                loop
+            )
+
             with loopback_mic.recorder(samplerate=SAMPLE_RATE, blocksize=CHUNK_SIZE) as recorder:
+                silence_count = 0
                 while True:
                     data = recorder.record(numframes=CHUNK_SIZE)
+                    peak = float(np.max(np.abs(data)))
+                    
+                    if peak < 0.002:
+                        silence_count += 1
+                    else:
+                        silence_count = 0
+
+                    # Dynamic auto-switching: if current device is silent for > 50 frames (~1.2 sec)
+                    # and auto-mode is active, check if another device has sound playing!
+                    if silence_count > 50 and (not selected_device_name or selected_device_name == "auto"):
+                        silence_count = 0
+                        alt_mic = find_playing_speaker()
+                        if alt_mic.name != loopback_mic.name:
+                            print(f"🔄 Audio output switched to: {alt_mic.name}! Re-routing...", flush=True)
+                            break  # Exits inner loop to re-bind to new active device
+                            
                     if active_websockets:
                         payload = analyzer.analyze(data, gain=current_gain)
                         msg = json.dumps(payload)
                         asyncio.run_coroutine_threadsafe(broadcast_message(msg), loop)
         except Exception as e:
-            print(f"⚠️ Audio capture warning: {e}. Retrying in 1.5 seconds...", flush=True)
-            time.sleep(1.5)
+            print(f"⚠️ Audio capture warning: {e}. Retrying in 1.2 seconds...", flush=True)
+            time.sleep(1.2)
 
 
 async def broadcast_message(message_str):
@@ -212,7 +264,7 @@ async def broadcast_message(message_str):
 
 async def ws_handler(request):
     """Handle visualizer & remote control WebSocket connections."""
-    global current_preset, current_palette, current_gain, current_strobe
+    global current_preset, current_palette, current_gain, current_strobe, selected_device_name, active_device_name
     ws = web.WebSocketResponse(heartbeat=15.0)
     await ws.prepare(request)
     active_websockets.add(ws)
@@ -223,7 +275,9 @@ async def ws_handler(request):
         "preset": current_preset,
         "palette": current_palette,
         "gain": current_gain,
-        "strobe": current_strobe
+        "strobe": current_strobe,
+        "device": active_device_name,
+        "devices": get_available_audio_devices()
     }
     await ws.send_str(json.dumps(initial_state))
 
@@ -246,6 +300,9 @@ async def ws_handler(request):
                 elif action == "set_strobe":
                     current_strobe = bool(data.get("strobe", True))
                     await broadcast_message(json.dumps({"type": "set_strobe", "strobe": current_strobe}))
+                elif action == "set_device":
+                    selected_device_name = str(data.get("device", "auto"))
+                    print(f"🔧 User selected device: {selected_device_name}", flush=True)
             elif msg.type == web.WSMsgType.ERROR:
                 pass
     finally:
@@ -254,7 +311,7 @@ async def ws_handler(request):
 
 
 async def api_info(request):
-    """Returns server and network information."""
+    """Returns server, network, and audio devices information."""
     local_ip = get_local_ip()
     return web.json_response({
         "status": "online",
@@ -264,7 +321,9 @@ async def api_info(request):
         "ip": local_ip,
         "preset": current_preset,
         "palette": current_palette,
-        "gain": current_gain
+        "gain": current_gain,
+        "active_device": active_device_name,
+        "available_devices": get_available_audio_devices()
     })
 
 
@@ -290,7 +349,7 @@ def main():
     print(" ⌨️  Hotkeys on Visualizer Window:", flush=True)
     print("     [F] / [F11]  : Toggle Fullscreen (Projector)", flush=True)
     print("     [Space]      : Next Visualizer Preset", flush=True)
-    print("     [1] - [5]    : Direct Preset Select", flush=True)
+    print("     [1] - [9], [0], [-], [=] : Direct Preset Select (12 total)", flush=True)
     print("     [C]          : Cycle Color Palette", flush=True)
     print("     [B]          : Toggle Beat Flash Strobe", flush=True)
     print("     [↑] / [↓]    : Adjust Audio Sensitivity", flush=True)
