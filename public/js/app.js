@@ -49,10 +49,11 @@
   let lastTime = performance.now();
   let idleTimer = null;
 
-  // Initialize Canvas Sizes
+  // Initialize Canvas Sizes with High-DPI support
   function resizeCanvases() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.0);
+    const w = Math.round(window.innerWidth * dpr);
+    const h = Math.round(window.innerHeight * dpr);
     canvasWebgl.width = w;
     canvasWebgl.height = h;
     canvas2d.width = w;
