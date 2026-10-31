@@ -1,0 +1,4 @@
+# Projector Music Visualizer dependencies
+soundcard>=0.4.3
+numpy>=1.24.0
+aiohttp>=3.9.0
