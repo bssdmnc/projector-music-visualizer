@@ -1,6 +1,7 @@
 /**
- * Preset 11: FirestormVisualizer (Audio Flame Tornado & Ember Sparks)
- * Rising column of swirling fire embers and volcanic bursts responding to drum kicks.
+ * Preset: FirestormVisualizer (Fluid Inferno & Volcanic Flame Vortex)
+ * Multi-layered undulating flame tongues, glowing magma core, heat distortion waves,
+ * and ballistic volcanic spark embers trailing smoke.
  */
 
 class FirestormVisualizer extends BaseVisualizer {
@@ -8,40 +9,37 @@ class FirestormVisualizer extends BaseVisualizer {
     super(canvas);
     this.name = "Firestorm";
     this.ctx = null;
-    this.particles = [];
-    this.numParticles = 280;
+    this.sparks = [];
+    this.flamePoints = 48;
+    this.phase = 0;
   }
 
   init() {
     this.ctx = this.canvas.getContext('2d');
-    this.initParticles();
+    this.initSparks();
   }
 
-  initParticles() {
-    this.particles = [];
-    for (let i = 0; i < this.numParticles; i++) {
-      this.particles.push(this.createParticle());
-    }
+  initSparks() {
+    this.sparks = [];
   }
 
-  createParticle(burst = false) {
-    const w = this.width;
-    const h = this.height;
+  createSpark(cx, cy, isBurst = false) {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * (isBurst ? 1.4 : 0.7);
+    const speed = (isBurst ? 14 : 6) + Math.random() * (isBurst ? 18 : 8);
     return {
-      x: w / 2 + (Math.random() - 0.5) * (w * 0.25),
-      y: burst ? h * 0.85 : h + Math.random() * 50,
-      vx: (Math.random() - 0.5) * (burst ? 8 : 2),
-      vy: -(2 + Math.random() * (burst ? 12 : 5)),
-      size: 2.0 + Math.random() * (burst ? 6 : 4),
+      x: cx + (Math.random() - 0.5) * 80,
+      y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: (isBurst ? 3.5 : 2.0) + Math.random() * 2.5,
       life: 1.0,
-      decay: 0.008 + Math.random() * 0.018,
-      colorType: Math.random()
+      decay: 0.012 + Math.random() * 0.02,
+      gravity: 0.18
     };
   }
 
   resize(width, height) {
     super.resize(width, height);
-    this.initParticles();
   }
 
   render(audio, dt) {
@@ -50,68 +48,123 @@ class FirestormVisualizer extends BaseVisualizer {
     const w = this.width;
     const h = this.height;
     const cx = w / 2;
-    const baselineY = h * 0.92;
+    const baselineY = h * 0.94;
 
     // Dark smoke fade
-    ctx.fillStyle = 'rgba(6, 2, 2, 0.24)';
+    ctx.fillStyle = 'rgba(4, 1, 1, 0.24)';
     ctx.fillRect(0, 0, w, h);
 
-    // Erupt on beat
+    this.phase += dt * (2.0 + audio.smoothVol * 2.5);
+
+    // Erupt volcanic sparks on beat kicks
     if (audio.isBeat) {
-      for (let i = 0; i < 40; i++) {
-        this.particles.push(this.createParticle(true));
+      for (let i = 0; i < 35; i++) {
+        this.sparks.push(this.createSpark(cx, baselineY - 40, true));
       }
+    }
+
+    // Continuous rising sparks
+    if (Math.random() > 0.4) {
+      this.sparks.push(this.createSpark(cx, baselineY - 30, false));
     }
 
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
-    // 1. Base Fire Glow
-    const baseGlow = ctx.createRadialGradient(cx, baselineY, 10, cx, baselineY, w * 0.45);
-    baseGlow.addColorStop(0, this.palette.primary);
-    baseGlow.addColorStop(0.5, this.palette.secondary);
-    baseGlow.addColorStop(1, 'transparent');
-    ctx.fillStyle = baseGlow;
-    ctx.globalAlpha = 0.35 + audio.smoothBass * 0.45;
-    ctx.beginPath();
-    ctx.arc(cx, baselineY, w * 0.45, 0, Math.PI * 2);
-    ctx.fill();
+    const bands = audio.smoothedBands;
+    const bandsCount = bands.length;
 
-    // 2. Rising Fire Tornado Particles
-    const speedBoost = 1.0 + audio.smoothVol * 2.2 + audio.smoothBass * 2.5;
+    // 1. Multi-Layer Undulating Fluid Flame Tongues
+    const layers = 4;
+    for (let l = 0; l < layers; l++) {
+      const layerOffset = l * 0.8;
+      const layerHeight = (h * 0.42 + l * 40) * (0.8 + audio.smoothBass * 0.7);
 
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.x += (p.vx + Math.sin(p.y * 0.02 + Date.now() * 0.003) * 2.5) * speedBoost * dt * 50.0;
-      p.y += p.vy * speedBoost * dt * 50.0;
-      p.life -= p.decay * (dt * 60.0);
+      ctx.beginPath();
+      ctx.moveTo(0, h);
 
-      if (p.life <= 0 || p.y < -20) {
-        if (this.particles.length > this.numParticles) {
-          this.particles.splice(i, 1);
-          continue;
-        } else {
-          this.particles[i] = this.createParticle(false);
-          continue;
-        }
+      for (let i = 0; i <= this.flamePoints; i++) {
+        const x = (i / this.flamePoints) * w;
+        const normDistFromCenter = Math.abs(x - cx) / (w * 0.45);
+        
+        // Bell curve envelope: tallest in center
+        const bell = Math.max(0.0, 1.0 - normDistFromCenter * normDistFromCenter);
+
+        const bandIdx = Math.floor(normDistFromCenter * (bandsCount - 1));
+        const freq = bands[bandIdx] || 0;
+
+        // Turbulent wave harmonics
+        const wave1 = Math.sin(i * 0.4 + this.phase * 3.0 + layerOffset) * 45;
+        const wave2 = Math.cos(i * 0.8 - this.phase * 2.0) * 25;
+        const wave3 = Math.sin(i * 1.6 + this.phase * 4.0) * 15;
+
+        const flameY = baselineY - (layerHeight * bell + wave1 + wave2 + wave3 + freq * 80);
+        ctx.lineTo(x, flameY);
       }
 
-      const color = p.colorType < 0.4 
-        ? '#ffffff' 
-        : (p.colorType < 0.75 ? this.palette.primary : this.palette.secondary);
+      ctx.lineTo(w, h);
+      ctx.closePath();
 
-      ctx.fillStyle = color;
-      ctx.globalAlpha = p.life * (0.5 + audio.smoothMid * 0.5);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * p.life * (1.0 + audio.smoothBass * 0.5), 0, Math.PI * 2);
+      // Flame gradient (White hot core -> Gold -> Red -> Dark Smoke)
+      const grad = ctx.createLinearGradient(cx, baselineY, cx, baselineY - layerHeight);
+      if (l === 0) {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.3, '#ffcc00');
+        grad.addColorStop(0.8, '#ff3300');
+        grad.addColorStop(1, 'transparent');
+      } else {
+        grad.addColorStop(0, this.palette.primary);
+        grad.addColorStop(0.6, this.palette.secondary);
+        grad.addColorStop(1, 'transparent');
+      }
+
+      ctx.fillStyle = grad;
+      ctx.globalAlpha = 0.45 + (l === 0 ? 0.35 : 0.0);
       ctx.fill();
     }
+
+    // 2. Ballistic Volcanic Embers & Sparks
+    for (let i = this.sparks.length - 1; i >= 0; i--) {
+      const s = this.sparks[i];
+      s.x += s.vx * dt * 50.0;
+      s.y += s.vy * dt * 50.0;
+      s.vy += s.gravity * dt * 50.0;
+      s.life -= s.decay * (dt * 60.0);
+
+      if (s.life <= 0 || s.y > h + 10) {
+        this.sparks.splice(i, 1);
+        continue;
+      }
+
+      const sparkCol = s.life > 0.6 ? '#ffffff' : (s.life > 0.3 ? '#ffcc00' : '#ff2200');
+      ctx.fillStyle = sparkCol;
+      ctx.shadowColor = sparkCol;
+      ctx.shadowBlur = 8;
+      ctx.globalAlpha = s.life;
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size * s.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 3. Molten Magma Floor Glow
+    const magmaGlow = ctx.createRadialGradient(cx, baselineY, 15, cx, baselineY, w * 0.4);
+    magmaGlow.addColorStop(0, '#ffffff');
+    magmaGlow.addColorStop(0.3, '#ffaa00');
+    magmaGlow.addColorStop(0.7, '#ff0000');
+    magmaGlow.addColorStop(1, 'transparent');
+
+    ctx.fillStyle = magmaGlow;
+    ctx.globalAlpha = 0.5 + audio.smoothBass * 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, baselineY, w * 0.4, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }
 
   destroy() {
-    this.particles = [];
+    this.sparks = [];
   }
 }
 

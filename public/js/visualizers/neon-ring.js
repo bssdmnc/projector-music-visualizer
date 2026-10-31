@@ -1,6 +1,7 @@
 /**
- * Preset 2: NeonRingVisualizer (Circular Audio Reactor & Particle Vortex)
- * Radial spectrum bars, pulsing energy core, and exploding particle stardust.
+ * Preset: NeonRingVisualizer (Arc Reactor & Quantum Cyber Core)
+ * Multi-tiered concentric plasma rings, segmented rotating calipers,
+ * radial equalizer needles, electric lightning arcs, and shockwave pulses.
  */
 
 class NeonRingVisualizer extends BaseVisualizer {
@@ -10,6 +11,7 @@ class NeonRingVisualizer extends BaseVisualizer {
     this.ctx = null;
     this.particles = [];
     this.rotAngle = 0;
+    this.rotInner = 0;
     this.shockwaves = [];
   }
 
@@ -20,15 +22,13 @@ class NeonRingVisualizer extends BaseVisualizer {
 
   initParticles() {
     this.particles = [];
-    const count = 250;
+    const count = 300;
     for (let i = 0; i < count; i++) {
       this.particles.push({
-        x: (Math.random() - 0.5) * this.width,
-        y: (Math.random() - 0.5) * this.height,
         angle: Math.random() * Math.PI * 2,
-        dist: 120 + Math.random() * 400,
-        speed: 0.2 + Math.random() * 0.8,
-        size: 1.5 + Math.random() * 2.5,
+        dist: 90 + Math.random() * 420,
+        speed: 0.3 + Math.random() * 0.9,
+        size: 1.0 + Math.random() * 2.2,
         alpha: 0.3 + Math.random() * 0.7,
         colorIndex: Math.floor(Math.random() * 3)
       });
@@ -48,22 +48,23 @@ class NeonRingVisualizer extends BaseVisualizer {
     const cx = w / 2;
     const cy = h / 2;
 
-    // Dark background with slight motion trail
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+    // Smooth motion trail fade
+    ctx.fillStyle = 'rgba(2, 2, 6, 0.22)';
     ctx.fillRect(0, 0, w, h);
 
     ctx.save();
     ctx.translate(cx, cy);
 
-    this.rotAngle += dt * (0.3 + audio.smoothVol * 0.6);
+    this.rotAngle += dt * (0.35 + audio.smoothMid * 0.5);
+    this.rotInner -= dt * (0.6 + audio.smoothBass * 0.8);
 
-    // Trigger shockwave on beat
+    // Shockwaves on beat
     if (audio.isBeat) {
       this.shockwaves.push({
-        r: 100 + audio.smoothBass * 50,
-        maxR: Math.max(w, h) * 0.7,
-        alpha: 0.9,
-        speed: 800 + audio.smoothBass * 400
+        r: 60,
+        maxR: Math.max(w, h) * 0.65,
+        alpha: 1.0,
+        speed: 900 + audio.smoothBass * 500
       });
     }
 
@@ -71,112 +72,148 @@ class NeonRingVisualizer extends BaseVisualizer {
     for (let i = this.shockwaves.length - 1; i >= 0; i--) {
       const sw = this.shockwaves[i];
       sw.r += sw.speed * dt;
-      sw.alpha -= dt * 1.8;
+      sw.alpha -= dt * 2.0;
       if (sw.alpha <= 0 || sw.r >= sw.maxR) {
         this.shockwaves.splice(i, 1);
         continue;
       }
+      ctx.save();
       ctx.beginPath();
       ctx.arc(0, 0, sw.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 255, 255, ${sw.alpha * 0.4})`;
+      ctx.strokeStyle = this.palette.primary;
+      ctx.globalAlpha = sw.alpha * 0.7;
       ctx.lineWidth = 3;
+      ctx.shadowColor = this.palette.primary;
+      ctx.shadowBlur = 15;
       ctx.stroke();
+      ctx.restore();
     }
 
-    // Blend mode for neon glow
     ctx.globalCompositeOperation = 'lighter';
 
-    // 1. Particle Vortex
+    // 1. Swirling Stardust Particle Vortex
     const colors = [this.palette.primary, this.palette.secondary, this.palette.accent];
     for (let p of this.particles) {
-      p.angle += (p.speed * 0.015) + (audio.smoothBass * 0.04);
-      p.dist += (audio.isBeat ? 15 : 0) - (dt * 15);
-      if (p.dist < 80) p.dist = Math.min(w, h) * 0.45;
-      if (p.dist > Math.min(w, h) * 0.55) p.dist = 90;
+      p.angle += (p.speed * 0.012) + (audio.smoothBass * 0.025);
+      p.dist += (audio.isBeat ? 12 : 0) - (dt * 12);
+      if (p.dist < 70) p.dist = Math.min(w, h) * 0.42;
+      if (p.dist > Math.min(w, h) * 0.46) p.dist = 75;
 
-      const px = Math.cos(p.angle + this.rotAngle * 0.5) * p.dist;
-      const py = Math.sin(p.angle + this.rotAngle * 0.5) * p.dist;
+      const px = Math.cos(p.angle) * p.dist;
+      const py = Math.sin(p.angle) * p.dist;
 
       ctx.fillStyle = colors[p.colorIndex];
       ctx.globalAlpha = p.alpha * (0.4 + audio.smoothVol * 0.6);
       ctx.beginPath();
-      ctx.arc(px, py, p.size * (1.0 + audio.smoothMid), 0, Math.PI * 2);
+      ctx.arc(px, py, p.size * (1.0 + audio.smoothMid * 0.8), 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1.0;
 
-    // 2. Pulsing Central Core
-    const baseRadius = Math.min(w, h) * 0.16;
-    const coreRadius = baseRadius * (1.0 + audio.smoothBass * 0.35);
+    const baseRadius = Math.min(w, h) * 0.17;
+    const coreRadius = baseRadius * (1.0 + audio.smoothBass * 0.3);
 
-    // Inner radial glow
-    const grad = ctx.createRadialGradient(0, 0, 10, 0, 0, coreRadius * 1.5);
-    grad.addColorStop(0, this.palette.primary);
-    grad.addColorStop(0.5, this.palette.secondary);
-    grad.addColorStop(1, 'transparent');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(0, 0, coreRadius * 1.4, 0, Math.PI * 2);
-    ctx.fill();
+    // 2. Outer Segmented Laser Calipers (Industrial Arc Reactor look)
+    const caliperRadius = coreRadius * 1.65;
+    const numSegments = 16;
+    ctx.save();
+    ctx.rotate(this.rotAngle * 0.5);
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = this.palette.accent;
+    ctx.shadowColor = this.palette.accent;
+    ctx.shadowBlur = 14;
 
-    // Core circle outline
-    ctx.strokeStyle = this.palette.primary;
-    ctx.lineWidth = 3 + audio.smoothBass * 4;
-    ctx.shadowColor = this.palette.primary;
-    ctx.shadowBlur = 20;
-    ctx.beginPath();
-    ctx.arc(0, 0, coreRadius, 0, Math.PI * 2);
-    ctx.stroke();
+    for (let s = 0; s < numSegments; s++) {
+      const aStart = (s * 2 * Math.PI) / numSegments;
+      const aEnd = aStart + (Math.PI / numSegments) * 0.75;
+      ctx.beginPath();
+      ctx.arc(0, 0, caliperRadius, aStart, aEnd);
+      ctx.stroke();
+    }
+    ctx.restore();
 
-    // 3. Radial Frequency Bars
-    const totalBars = 96; // Symmetrical dual half-circle
+    // 3. High-Definition Radial Equalizer Blades
+    const totalBars = 96;
     const barAngle = (Math.PI * 2) / totalBars;
-    const bandsCount = audio.smoothedBands.length;
+    const bands = audio.smoothedBands;
+    const bandsCount = bands.length;
 
     for (let i = 0; i < totalBars; i++) {
-      // Map half circle symmetry (0..48..0)
-      const bandIndex = i < totalBars / 2 
-        ? Math.floor((i / (totalBars / 2)) * bandsCount)
-        : Math.floor(((totalBars - i) / (totalBars / 2)) * bandsCount);
-        
-      const bandVal = audio.smoothedBands[Math.min(bandIndex, bandsCount - 1)] || 0;
-      const barLen = Math.pow(bandVal, 1.2) * (Math.min(w, h) * 0.28);
-      
+      const normIdx = i < totalBars / 2 
+        ? (i / (totalBars / 2)) 
+        : ((totalBars - i) / (totalBars / 2));
+      const bandIdx = Math.floor(normIdx * (bandsCount - 1));
+      const val = bands[bandIdx] || 0;
+
+      const barLen = Math.pow(val, 1.2) * (Math.min(w, h) * 0.26);
       const angle = i * barAngle + this.rotAngle;
       const cosA = Math.cos(angle);
       const sinA = Math.sin(angle);
 
-      const x1 = cosA * coreRadius;
-      const y1 = sinA * coreRadius;
-      const x2 = cosA * (coreRadius + barLen + 4);
-      const y2 = sinA * (coreRadius + barLen + 4);
+      const r1 = coreRadius + 4;
+      const r2 = coreRadius + barLen + 8;
 
-      // Gradient color for each bar
-      const barGrad = ctx.createLinearGradient(x1, y1, x2, y2);
-      barGrad.addColorStop(0, this.palette.primary);
-      barGrad.addColorStop(0.6, this.palette.secondary);
-      barGrad.addColorStop(1, this.palette.accent);
+      const x1 = cosA * r1;
+      const y1 = sinA * r1;
+      const x2 = cosA * r2;
+      const y2 = sinA * r2;
 
-      ctx.strokeStyle = barGrad;
-      ctx.lineWidth = Math.max(2, (Math.PI * 2 * coreRadius) / totalBars * 0.65);
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, this.palette.primary);
+      grad.addColorStop(0.6, this.palette.secondary);
+      grad.addColorStop(1, '#ffffff');
+
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = Math.max(2.0, (Math.PI * 2 * coreRadius) / totalBars * 0.6);
       ctx.shadowColor = this.palette.secondary;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = val > 0.4 ? 12 : 0;
 
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
       ctx.stroke();
 
-      // Peak dot at top of bar
-      if (barLen > 15) {
+      // Sharp glowing tip point
+      if (barLen > 18) {
         ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#ffffff';
-        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(x2, y2, 2.5, 0, Math.PI * 2);
+        ctx.arc(x2, y2, 2.0, 0, Math.PI * 2);
         ctx.fill();
       }
     }
+
+    // 4. Inner Counter-Rotating Plasma Turbine
+    ctx.save();
+    ctx.rotate(this.rotInner);
+    ctx.strokeStyle = this.palette.primary;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = this.palette.primary;
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(0, 0, coreRadius * 0.65, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 6 turbine spokes with electric arcs
+    for (let k = 0; k < 6; k++) {
+      const spokeA = (k * Math.PI * 2) / 6;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      const sx = Math.cos(spokeA) * coreRadius * 0.65;
+      const sy = Math.sin(spokeA) * coreRadius * 0.65;
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 5. Central Singularity Core Glow
+    const coreGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, coreRadius * 0.5);
+    coreGrad.addColorStop(0, '#ffffff');
+    coreGrad.addColorStop(0.4, this.palette.primary);
+    coreGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, coreRadius * 0.5, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   }

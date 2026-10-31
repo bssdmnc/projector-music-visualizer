@@ -1,6 +1,7 @@
 /**
- * Preset 3: SynthwaveGridVisualizer (80s Outrun Wireframe Mountain & Pulsing Sun)
- * 3D perspective grid undulating with audio, retro sunset, and starry sky.
+ * Preset: SynthwaveGridVisualizer (High-Octane Sonic Highway & Outrun Mountain Grid)
+ * The central highway undulates and ripples vertically to the music waveform like a sonic roller-coaster,
+ * flanked by audio-reactive wireframe mountain ridges and a pulsating retrowave sun.
  */
 
 class SynthwaveGridVisualizer extends BaseVisualizer {
@@ -8,9 +9,10 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
     super(canvas);
     this.name = "Synthwave 80s";
     this.ctx = null;
-    this.cols = 28;
-    this.rows = 24;
+    this.cols = 32;
+    this.rows = 26;
     this.terrain = [];
+    this.roadWaveform = [];
     this.scrollSpeed = 0;
     this.stars = [];
   }
@@ -23,8 +25,10 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
 
   initTerrain() {
     this.terrain = [];
+    this.roadWaveform = [];
     for (let y = 0; y < this.rows; y++) {
       this.terrain[y] = [];
+      this.roadWaveform[y] = 0;
       for (let x = 0; x < this.cols; x++) {
         this.terrain[y][x] = 0;
       }
@@ -33,10 +37,10 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
 
   initStars() {
     this.stars = [];
-    for (let i = 0; i < 120; i++) {
+    for (let i = 0; i < 140; i++) {
       this.stars.push({
         x: Math.random() * this.width,
-        y: Math.random() * (this.height * 0.45),
+        y: Math.random() * (this.height * 0.44),
         size: Math.random() * 2 + 0.5,
         alpha: Math.random() * 0.8 + 0.2
       });
@@ -53,39 +57,39 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
     const ctx = this.ctx;
     const w = this.width;
     const h = this.height;
-    const horizonY = h * 0.46;
+    const horizonY = h * 0.44;
 
-    // Dark sky and space
-    ctx.fillStyle = '#05020a';
+    // Deep starry void
+    ctx.fillStyle = '#040108';
     ctx.fillRect(0, 0, w, h);
 
-    // 1. Distant Stars
+    // 1. Twinkling Stars
     ctx.fillStyle = '#ffffff';
     for (let star of this.stars) {
-      ctx.globalAlpha = star.alpha * (0.5 + audio.smoothTreble * 0.5);
+      ctx.globalAlpha = star.alpha * (0.6 + audio.smoothTreble * 0.4);
       ctx.fillRect(star.x, star.y, star.size, star.size);
     }
     ctx.globalAlpha = 1.0;
 
-    // 2. Glowing Synthwave Sun on the Horizon
-    const sunRadius = Math.min(w, h) * 0.22 * (1.0 + audio.smoothBass * 0.18);
+    // 2. Giant Pulsing Synthwave Sun
+    const sunRadius = Math.min(w, h) * 0.23 * (1.0 + audio.smoothBass * 0.22);
     const sunX = w / 2;
-    const sunY = horizonY - sunRadius * 0.3;
+    const sunY = horizonY - sunRadius * 0.32;
 
     ctx.save();
-    // Sun glow
-    const sunGlow = ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 1.8);
+    // Sun corona glow
+    const sunGlow = ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 1.9);
     sunGlow.addColorStop(0, this.palette.primary);
     sunGlow.addColorStop(0.5, this.palette.secondary);
     sunGlow.addColorStop(1, 'transparent');
     ctx.fillStyle = sunGlow;
     ctx.beginPath();
-    ctx.arc(sunX, sunY, sunRadius * 1.8, 0, Math.PI * 2);
+    ctx.arc(sunX, sunY, sunRadius * 1.9, 0, Math.PI * 2);
     ctx.fill();
 
-    // Sun body gradient
+    // Sun gradient body
     const sunGrad = ctx.createLinearGradient(sunX, sunY - sunRadius, sunX, sunY + sunRadius);
-    sunGrad.addColorStop(0, '#ffe600');
+    sunGrad.addColorStop(0, '#fff000');
     sunGrad.addColorStop(0.5, this.palette.secondary);
     sunGrad.addColorStop(1, this.palette.primary);
     ctx.fillStyle = sunGrad;
@@ -93,20 +97,21 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
     ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Retro horizontal sun scanline slits
-    const numSlits = 7;
-    ctx.fillStyle = '#05020a';
+    // Retro horizontal scanline slits
+    const numSlits = 8;
+    ctx.fillStyle = '#040108';
     for (let i = 0; i < numSlits; i++) {
       const slitY = sunY + (i / numSlits) * sunRadius;
-      const slitHeight = 3 + i * 2.5;
+      const slitHeight = 3 + i * 2.8;
       if (slitY + slitHeight < horizonY) {
-        ctx.fillRect(sunX - sunRadius - 10, slitY, (sunRadius + 10) * 2, slitHeight);
+        ctx.fillRect(sunX - sunRadius - 15, slitY, (sunRadius + 15) * 2, slitHeight);
       }
     }
     ctx.restore();
 
-    // 3. Update Terrain with Audio Energy
-    this.scrollSpeed += dt * (12.0 + audio.smoothVol * 25.0);
+    // 3. Terrain & Road Simulation
+    // Scroll speed accelerates aggressively with tempo and bass
+    this.scrollSpeed += dt * (16.0 + audio.smoothVol * 28.0 + (audio.isBeat ? 20.0 : 0.0));
     const bands = audio.smoothedBands;
     const bandsCount = bands.length;
 
@@ -115,45 +120,53 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
       this.scrollSpeed -= 1.0;
       for (let y = this.rows - 1; y > 0; y--) {
         this.terrain[y] = [...this.terrain[y - 1]];
+        this.roadWaveform[y] = this.roadWaveform[y - 1];
       }
-      
-      // Generate new back row with audio-reactive mountain peaks on the sides
+
+      // Dynamic Road Wave: road undulates with audio bass & volume
+      this.roadWaveform[0] = Math.sin(Date.now() * 0.008) * 35.0 * audio.smoothBass 
+                           + (audio.isBeat ? -45.0 : 10.0 * audio.smoothVol);
+
+      // Generate new back row
       for (let x = 0; x < this.cols; x++) {
         const centerDist = Math.abs(x - (this.cols - 1) / 2) / ((this.cols - 1) / 2);
-        // Valley in center, mountains on edges
-        if (centerDist > 0.25) {
-          const bandIdx = Math.floor(centerDist * (bandsCount - 1));
-          const freqHeight = Math.pow(bands[bandIdx] || 0, 1.4) * 220;
-          this.terrain[0][x] = freqHeight * (centerDist * 1.4);
+        
+        // Road is in center (centerDist < 0.22)
+        if (centerDist <= 0.22) {
+          this.terrain[0][x] = this.roadWaveform[0];
         } else {
-          this.terrain[0][x] = Math.sin(x + Date.now() * 0.005) * 8 * audio.smoothBass;
+          // Flanking mountain ridges: height spikes to audio frequency bands
+          const bandIdx = Math.floor(centerDist * (bandsCount - 1));
+          const freqVal = Math.pow(bands[bandIdx] || 0, 1.3) * 260.0;
+          const mountainBase = (centerDist - 0.22) * 1.8;
+          this.terrain[0][x] = this.roadWaveform[0] + freqVal * mountainBase;
         }
       }
     }
 
-    // 4. Render 3D Perspective Wireframe Grid
+    // 4. Render 3D Perspective Grid
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
-    // Projection helper: transforms (gridX, gridY, height) to screen (px, py)
+    // Projection function: transforms grid coordinates into 3D screen space
     const project = (gx, gy, gz) => {
       const normY = (gy + this.scrollSpeed) / this.rows;
-      const pY = Math.pow(normY, 2.2); // Exponential depth
-      const screenY = horizonY + pY * (h - horizonY) - gz * (0.2 + pY * 0.8);
-      
-      const spread = 0.15 + pY * 1.25;
+      const pY = Math.pow(normY, 2.3); // Exponential depth
+      const screenY = horizonY + pY * (h - horizonY) - gz * (0.25 + pY * 0.75);
+
+      const spread = 0.14 + pY * 1.35;
       const screenX = w / 2 + ((gx / (this.cols - 1)) - 0.5) * (w * spread);
-      return { x: screenX, y: screenY };
+      return { x: screenX, y: screenY, depth: pY };
     };
 
-    // Horizontal lines
+    // Horizontal Lines
     for (let y = 0; y < this.rows - 1; y++) {
-      const depthAlpha = Math.min(1.0, y / (this.rows * 0.5));
+      const depthAlpha = Math.min(1.0, y / (this.rows * 0.45));
       ctx.strokeStyle = this.palette.primary;
-      ctx.lineWidth = 1.2 + depthAlpha * 1.8;
-      ctx.globalAlpha = 0.25 + depthAlpha * 0.75;
+      ctx.lineWidth = 1.2 + depthAlpha * 2.2;
+      ctx.globalAlpha = 0.3 + depthAlpha * 0.7;
       ctx.shadowColor = this.palette.primary;
-      ctx.shadowBlur = depthAlpha > 0.6 ? 10 : 0;
+      ctx.shadowBlur = depthAlpha > 0.6 ? 12 : 0;
 
       ctx.beginPath();
       for (let x = 0; x < this.cols; x++) {
@@ -164,12 +177,34 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
       ctx.stroke();
     }
 
-    // Longitudinal perspective lines
+    // Longitudinal Perspective Lines
+    const midCol = (this.cols - 1) / 2;
     for (let x = 0; x < this.cols; x++) {
-      const centerDist = Math.abs(x - (this.cols - 1) / 2) / ((this.cols - 1) / 2);
-      ctx.strokeStyle = centerDist > 0.4 ? this.palette.secondary : this.palette.accent;
-      ctx.lineWidth = 1.5;
-      ctx.globalAlpha = 0.5;
+      const centerDist = Math.abs(x - midCol) / midCol;
+      const isRoadBorder = (Math.abs(x - (midCol - 3)) < 0.5 || Math.abs(x - (midCol + 3)) < 0.5);
+      const isRoadCenter = (Math.abs(x - midCol) < 0.5);
+
+      if (isRoadCenter) {
+        // Glowing Neon Center Stripe
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3.0;
+        ctx.shadowColor = '#ffffff';
+        ctx.shadowBlur = 15;
+        ctx.globalAlpha = 0.95;
+      } else if (isRoadBorder) {
+        // Glowing Road Guardrail
+        ctx.strokeStyle = this.palette.secondary;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = this.palette.secondary;
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.85;
+      } else {
+        // Outer mountain grid lines
+        ctx.strokeStyle = centerDist > 0.4 ? this.palette.secondary : this.palette.accent;
+        ctx.lineWidth = 1.3;
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 0.45;
+      }
 
       ctx.beginPath();
       for (let y = 0; y < this.rows; y++) {
@@ -185,6 +220,7 @@ class SynthwaveGridVisualizer extends BaseVisualizer {
 
   destroy() {
     this.terrain = [];
+    this.roadWaveform = [];
     this.stars = [];
   }
 }

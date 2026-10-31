@@ -1,6 +1,6 @@
 /**
- * Preset 6: MatrixRainVisualizer (Digital Matrix Rain & Audio Glitch Shockwaves)
- * Falling code streams that accelerate with audio tempo, with bass glitch ripples.
+ * Preset: MatrixRainVisualizer (Hypnotic Multi-Layer Matrix Rain)
+ * Calibrated majestic rain speed with 3 depth layers, glowing glyph leaders, and audio glitch ripples.
  */
 
 class MatrixRainVisualizer extends BaseVisualizer {
@@ -11,7 +11,6 @@ class MatrixRainVisualizer extends BaseVisualizer {
     this.fontSize = 18;
     this.columns = 0;
     this.drops = [];
-    this.speeds = [];
     this.chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF$#@*+-%=";
     this.glitchRipples = [];
   }
@@ -24,10 +23,15 @@ class MatrixRainVisualizer extends BaseVisualizer {
   resetColumns() {
     this.columns = Math.floor(this.width / this.fontSize);
     this.drops = [];
-    this.speeds = [];
     for (let i = 0; i < this.columns; i++) {
-      this.drops[i] = Math.random() * -100;
-      this.speeds[i] = 0.6 + Math.random() * 1.4;
+      this.drops[i] = {
+        y: Math.random() * -120,
+        // Base speed is now calm and majestic (0.2 to 0.55 instead of 1.4!)
+        speed: 0.22 + Math.random() * 0.35,
+        depth: Math.random(), // 0 = Far, 1 = Close
+        currentChar: this.chars[Math.floor(Math.random() * this.chars.length)],
+        lastCharChange: 0
+      };
     }
   }
 
@@ -42,17 +46,16 @@ class MatrixRainVisualizer extends BaseVisualizer {
     const w = this.width;
     const h = this.height;
 
-    // Dark fade effect for trails
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    // Smooth phosphor decay
+    ctx.fillStyle = 'rgba(1, 4, 2, 0.14)';
     ctx.fillRect(0, 0, w, h);
 
-    // Bass trigger creates a shockwave ripple
+    // Bass trigger sends a horizontal ripple wave
     if (audio.isBeat) {
       this.glitchRipples.push({
         y: Math.random() * h,
         radius: 0,
-        maxRadius: Math.max(w, h),
-        intensity: 1.0 + audio.smoothBass * 1.5,
+        maxRadius: Math.max(w, h) * 0.8,
         alpha: 1.0
       });
     }
@@ -60,7 +63,7 @@ class MatrixRainVisualizer extends BaseVisualizer {
     // Update ripples
     for (let i = this.glitchRipples.length - 1; i >= 0; i--) {
       const rip = this.glitchRipples[i];
-      rip.radius += dt * 1200;
+      rip.radius += dt * 900;
       rip.alpha -= dt * 2.2;
       if (rip.alpha <= 0 || rip.radius > rip.maxRadius) {
         this.glitchRipples.splice(i, 1);
@@ -72,47 +75,52 @@ class MatrixRainVisualizer extends BaseVisualizer {
 
     const bands = audio.smoothedBands;
     const bandsCount = bands.length;
-    const speedMultiplier = 1.0 + audio.smoothVol * 2.5 + audio.smoothBass * 1.8;
+    // Modest, elegant speed boost from audio
+    const speedMultiplier = 1.0 + audio.smoothVol * 0.8;
 
     for (let i = 0; i < this.columns; i++) {
-      // Pick random glyph
-      const char = this.chars[Math.floor(Math.random() * this.chars.length)];
-      
-      // Calculate column audio influence
+      const drop = this.drops[i];
       const bandIdx = Math.floor((i / this.columns) * bandsCount);
       const bandVal = bands[bandIdx] || 0;
 
-      // X coordinate with optional glitch offset
-      let x = i * this.fontSize;
-      let y = this.drops[i] * this.fontSize;
+      // Randomly change glyph periodically
+      if (Math.random() > 0.94) {
+        drop.currentChar = this.chars[Math.floor(Math.random() * this.chars.length)];
+      }
 
-      // Apply ripple displacement on beat
+      let x = i * this.fontSize;
+      let y = drop.y * this.fontSize;
+
+      // Ripple glitch displacement
       for (let rip of this.glitchRipples) {
         const dist = Math.abs(y - rip.y);
-        if (Math.abs(dist - rip.radius) < 60) {
-          x += (Math.sin(dist * 0.1) * 15 * rip.alpha);
+        if (Math.abs(dist - rip.radius) < 50) {
+          x += Math.sin(dist * 0.15) * 12 * rip.alpha;
         }
       }
 
-      // Head character (Glowing White / Accent)
+      // 1. Head Glyphs (Bright white with intense neon halo)
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = this.palette.primary;
-      ctx.shadowBlur = bandVal > 0.4 ? 14 : 4;
-      ctx.fillText(char, x, y);
+      ctx.shadowBlur = drop.depth > 0.6 ? (bandVal > 0.4 ? 16 : 8) : 2;
+      ctx.globalAlpha = 0.95;
+      ctx.fillText(drop.currentChar, x, y);
 
-      // Trailing character
+      // 2. Trailing Glyphs
       const trailChar = this.chars[Math.floor(Math.random() * this.chars.length)];
-      ctx.fillStyle = bandVal > 0.5 ? this.palette.secondary : this.palette.primary;
+      ctx.fillStyle = drop.depth > 0.5 ? this.palette.primary : this.palette.secondary;
       ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.5 + drop.depth * 0.35;
       ctx.fillText(trailChar, x, y - this.fontSize);
 
-      // Advance drop
-      this.drops[i] += this.speeds[i] * speedMultiplier * (1.0 + bandVal * 0.8) * dt * 28.0;
+      // Advance at calibrated graceful speed
+      drop.y += drop.speed * speedMultiplier * dt * 22.0;
 
-      // Reset drop when off screen
-      if (this.drops[i] * this.fontSize > h && Math.random() > 0.96) {
-        this.drops[i] = 0;
-        this.speeds[i] = 0.6 + Math.random() * 1.4;
+      // Wrap around
+      if (drop.y * this.fontSize > h && Math.random() > 0.975) {
+        drop.y = Math.random() * -30;
+        drop.speed = 0.22 + Math.random() * 0.35;
+        drop.depth = Math.random();
       }
     }
 
