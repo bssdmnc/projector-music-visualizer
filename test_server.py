@@ -2,7 +2,7 @@
 Automated Test for Projector Music Visualizer
 Tests:
 1. AudioAnalyzer frequency binning and beat detection.
-2. Static frontend files integrity (all 12 presets + remotes + styles).
+2. Static frontend files integrity (all 18 presets + shaders + remotes + styles).
 3. Server routes creation and IP detection.
 """
 
@@ -16,16 +16,15 @@ if hasattr(sys.stdout, 'reconfigure'):
 if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
-# Ensure project directory is on sys.path
 PROJECT_DIR = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from server import AudioAnalyzer, create_app, get_local_ip
 
 def test_all():
-    print("=" * 60)
-    print("🧪 Running Projector Music Visualizer Test Suite (12 Presets)")
-    print("=" * 60)
+    print("=" * 65)
+    print("🧪 Running Projector Music Visualizer Test Suite (18 Presets)")
+    print("=" * 65)
 
     # 1. Test IP detection
     print("\n[1/3] Testing LAN IP Detection...")
@@ -37,7 +36,6 @@ def test_all():
     print("\n[2/3] Testing AudioAnalyzer FFT & Beat Trigger...")
     analyzer = AudioAnalyzer(sample_rate=44100, chunk_size=1024, num_bands=48)
     
-    # 80 Hz sine wave
     t = np.linspace(0, 1024 / 44100.0, 1024, endpoint=False)
     bass_wave = (np.sin(2 * np.pi * 80.0 * t) * 0.9).astype(np.float32)
     res_bass = analyzer.analyze(bass_wave, gain=1.0)
@@ -53,8 +51,8 @@ def test_all():
     assert res_silence["vol"] == 0.0, f"Expected 0.0 volume for silence, got {res_silence['vol']}"
     print("      ✅ Silence handling OK")
 
-    # 3. Test All 12 Visualizer Preset Assets Integrity
-    print("\n[3/3] Checking Frontend Assets on Disk (All 12 Presets)...")
+    # 3. Test All 18 Visualizer Preset Assets Integrity
+    print("\n[3/3] Checking Frontend Assets on Disk (All 18 Presets + 7 GPU Shaders)...")
     public_dir = PROJECT_DIR / "public"
     required_files = [
         "index.html",
@@ -63,7 +61,16 @@ def test_all():
         "js/palettes.js",
         "js/audio-client.js",
         "js/visualizers/base.js",
+        "js/visualizers/shader-base.js",
+        # 7 High-End GPU Raymarched Shaders
         "js/visualizers/liquid-acid.js",
+        "js/visualizers/black-hole.js",
+        "js/visualizers/quantum-nebula.js",
+        "js/visualizers/fractal-morph.js",
+        "js/visualizers/cyber-city.js",
+        "js/visualizers/biolum-abyss.js",
+        "js/visualizers/kaleido-temple.js",
+        # 11 Geometry & Particle visualizers
         "js/visualizers/neon-ring.js",
         "js/visualizers/synthwave-grid.js",
         "js/visualizers/cosmic-tunnel.js",
@@ -88,9 +95,9 @@ def test_all():
     assert app is not None, "Failed to create aiohttp app"
     print("      ✅ aiohttp App configuration OK")
 
-    print("\n" + "=" * 60)
-    print("🎉 ALL 12 VISUALIZER PRESETS VERIFIED & READY! (100% OK)")
-    print("=" * 60)
+    print("\n" + "=" * 65)
+    print("🎉 ALL 18 VISUALIZER PRESETS (7 SHADERS) VERIFIED! (100% OK)")
+    print("=" * 65)
 
 if __name__ == '__main__':
     test_all()

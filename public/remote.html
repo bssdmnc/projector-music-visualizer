@@ -8,7 +8,7 @@
     :root {
       --bg: #0b0c10;
       --card-bg: rgba(255, 255, 255, 0.06);
-      --card-active: rgba(0, 243, 255, 0.2);
+      --card-active: rgba(0, 243, 255, 0.22);
       --accent: #00f3ff;
       --accent-pink: #ff007f;
       --text: #ffffff;
@@ -78,6 +78,18 @@
       letter-spacing: 1px;
       color: var(--text-muted);
       margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .badge-shader {
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.3), rgba(255, 0, 127, 0.3));
+      border: 1px solid var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 6px;
     }
 
     /* Grid of Presets */
@@ -91,7 +103,7 @@
       background: var(--card-bg);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 14px;
-      padding: 14px 10px;
+      padding: 12px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -99,6 +111,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       text-align: center;
+      position: relative;
     }
 
     .preset-card:active {
@@ -111,12 +124,25 @@
       box-shadow: 0 0 16px rgba(0, 243, 255, 0.3);
     }
 
+    .preset-card.is-shader::after {
+      content: "GPU 3D";
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 0.55rem;
+      background: rgba(0, 243, 255, 0.2);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+
     .preset-icon {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
     }
 
     .preset-name {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 600;
     }
 
@@ -257,55 +283,89 @@
     </div>
   </header>
 
-  <!-- Visualizer Presets (12 total) -->
+  <!-- 7 GPU Shaders -->
   <div>
-    <div class="section-title">12 Визуальных Режимов</div>
+    <div class="section-title">
+      <span>7 Сложных 3D/4D Шейдеров</span>
+      <span class="badge-shader">GPU Raymarching</span>
+    </div>
     <div class="preset-grid">
-      <div class="preset-card active" data-preset="0">
+      <div class="preset-card is-shader active" data-preset="0">
         <span class="preset-icon">🧪</span>
         <span class="preset-name">Кислотный шейдер</span>
       </div>
-      <div class="preset-card" data-preset="1">
+      <div class="preset-card is-shader" data-preset="1">
+        <span class="preset-icon">🕳️</span>
+        <span class="preset-name">Черная Дыра</span>
+      </div>
+      <div class="preset-card is-shader" data-preset="2">
+        <span class="preset-icon">🌌</span>
+        <span class="preset-name">Туманность 3D</span>
+      </div>
+      <div class="preset-card is-shader" data-preset="3">
+        <span class="preset-icon">🔮</span>
+        <span class="preset-name">4D Фрактал</span>
+      </div>
+      <div class="preset-card is-shader" data-preset="4">
+        <span class="preset-icon">🌆</span>
+        <span class="preset-name">Кибер-Сити 3D</span>
+      </div>
+      <div class="preset-card is-shader" data-preset="5">
+        <span class="preset-icon">🪼</span>
+        <span class="preset-name">Био-Бездна</span>
+      </div>
+      <div class="preset-card is-shader" data-preset="6" style="grid-column: span 2;">
+        <span class="preset-icon">🏛️</span>
+        <span class="preset-name">Калейдо-Храм KIFS 3D</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Geometry & Particle Modes -->
+  <div>
+    <div class="section-title">Геометрия и Частицы</div>
+    <div class="preset-grid">
+      <div class="preset-card" data-preset="7">
         <span class="preset-icon">⭕</span>
         <span class="preset-name">Неоновое кольцо</span>
       </div>
-      <div class="preset-card" data-preset="2">
-        <span class="preset-icon">🌆</span>
+      <div class="preset-card" data-preset="8">
+        <span class="preset-icon">🌅</span>
         <span class="preset-name">Ретровейв 80-х</span>
       </div>
-      <div class="preset-card" data-preset="3">
-        <span class="preset-icon">🌌</span>
-        <span class="preset-name">Гиперпространство</span>
+      <div class="preset-card" data-preset="9">
+        <span class="preset-icon">🚀</span>
+        <span class="preset-name">Варп-Туннель</span>
       </div>
-      <div class="preset-card" data-preset="4">
+      <div class="preset-card" data-preset="10">
         <span class="preset-icon">📊</span>
         <span class="preset-name">3D Эквалайзер</span>
       </div>
-      <div class="preset-card" data-preset="5">
+      <div class="preset-card" data-preset="11">
         <span class="preset-icon">💻</span>
         <span class="preset-name">Матрица</span>
       </div>
-      <div class="preset-card" data-preset="6">
+      <div class="preset-card" data-preset="12">
         <span class="preset-icon">🌀</span>
         <span class="preset-name">Галактика</span>
       </div>
-      <div class="preset-card" data-preset="7">
+      <div class="preset-card" data-preset="13">
         <span class="preset-icon">🌸</span>
         <span class="preset-name">Мандала</span>
       </div>
-      <div class="preset-card" data-preset="8">
+      <div class="preset-card" data-preset="14">
         <span class="preset-icon">🌐</span>
-        <span class="preset-name">Кибер-сфера 3D</span>
+        <span class="preset-name">Кибер-сфера</span>
       </div>
-      <div class="preset-card" data-preset="9">
+      <div class="preset-card" data-preset="15">
         <span class="preset-icon">⚡</span>
         <span class="preset-name">Лазерная плазма</span>
       </div>
-      <div class="preset-card" data-preset="10">
+      <div class="preset-card" data-preset="16">
         <span class="preset-icon">🔥</span>
         <span class="preset-name">Огненный вихрь</span>
       </div>
-      <div class="preset-card" data-preset="11">
+      <div class="preset-card" data-preset="17" style="grid-column: span 2;">
         <span class="preset-icon">💎</span>
         <span class="preset-name">Кристаллы</span>
       </div>

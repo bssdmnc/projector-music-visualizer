@@ -11,7 +11,7 @@
   <!-- Beat Strobe Overlay -->
   <div id="beat-strobe"></div>
 
-  <!-- Primary Rendering Canvases (WebGL for Shader, 2D for Canvas Visualizers) -->
+  <!-- Primary Rendering Canvases (WebGL for Shaders, 2D for Canvas Visualizers) -->
   <canvas id="canvas-webgl"></canvas>
   <canvas id="canvas-2d" style="display: none;"></canvas>
 
@@ -44,18 +44,26 @@
     <!-- Bottom Preset & Control Dock -->
     <div class="bottom-dock">
       <div class="preset-selector">
+        <!-- 7 High-End GPU Shaders -->
         <button class="preset-btn active" data-preset="0">🧪 Кислота [1]</button>
-        <button class="preset-btn" data-preset="1">⭕ Кольцо [2]</button>
-        <button class="preset-btn" data-preset="2">🌆 Ретро 80-е [3]</button>
-        <button class="preset-btn" data-preset="3">🌌 Космос [4]</button>
-        <button class="preset-btn" data-preset="4">📊 3D Бары [5]</button>
-        <button class="preset-btn" data-preset="5">💻 Матрица [6]</button>
-        <button class="preset-btn" data-preset="6">🌀 Галактика [7]</button>
-        <button class="preset-btn" data-preset="7">🌸 Мандала [8]</button>
-        <button class="preset-btn" data-preset="8">🌐 3D Сфера [9]</button>
-        <button class="preset-btn" data-preset="9">⚡ Лазер [0]</button>
-        <button class="preset-btn" data-preset="10">🔥 Огонь [-]</button>
-        <button class="preset-btn" data-preset="11">💎 Кристаллы [=]</button>
+        <button class="preset-btn" data-preset="1">🕳️ Черная Дыра [2]</button>
+        <button class="preset-btn" data-preset="2">🌌 Туманность 3D [3]</button>
+        <button class="preset-btn" data-preset="3">🔮 4D Фрактал [4]</button>
+        <button class="preset-btn" data-preset="4">🌆 Кибер-Сити [5]</button>
+        <button class="preset-btn" data-preset="5">🪼 Бездна [6]</button>
+        <button class="preset-btn" data-preset="6">🏛️ Храм KIFS [7]</button>
+        <!-- Geometry & Particle Modes -->
+        <button class="preset-btn" data-preset="7">⭕ Кольцо [8]</button>
+        <button class="preset-btn" data-preset="8">🌅 Ретровейв [9]</button>
+        <button class="preset-btn" data-preset="9">🚀 Варп-Туннель [0]</button>
+        <button class="preset-btn" data-preset="10">📊 3D Бары [-]</button>
+        <button class="preset-btn" data-preset="11">💻 Матрица [=]</button>
+        <button class="preset-btn" data-preset="12">🌀 Галактика</button>
+        <button class="preset-btn" data-preset="13">🌸 Мандала</button>
+        <button class="preset-btn" data-preset="14">🌐 3D Сфера</button>
+        <button class="preset-btn" data-preset="15">⚡ Лазер</button>
+        <button class="preset-btn" data-preset="16">🔥 Огонь</button>
+        <button class="preset-btn" data-preset="17">💎 Кристаллы</button>
       </div>
 
       <div class="dock-divider"></div>
@@ -71,14 +79,15 @@
   <div id="remote-modal" class="modal-overlay">
     <div class="modal-card">
       <h2 class="modal-title">📱 Пульт со смартфона</h2>
-      <p class="modal-desc">Подключитесь к тому же Wi-Fi и откройте этот адрес в браузере телефона, чтобы управлять музыкой и всеми 12 пресетами с дивана:</p>
+      <p class="modal-desc">Подключитесь к тому же Wi-Fi и откройте этот адрес в браузере телефона, чтобы управлять всеми 18 визуализациями с дивана:</p>
       
       <a id="remote-url-link" href="#" target="_blank" class="remote-link">Загрузка адреса...</a>
 
       <div class="hotkeys-hint">
         <strong>Горячие клавиши на ПК:</strong><br>
-        <kbd>Space</kbd> — следующий пресет (всего 12)<br>
-        <kbd>1</kbd> - <kbd>9</kbd>, <kbd>0</kbd>, <kbd>-</kbd>, <kbd>=</kbd> — выбор любого из 12 пресетов<br>
+        <kbd>Space</kbd> — следующий пресет (всего 18 режимов)<br>
+        <kbd>1</kbd> - <kbd>7</kbd> — топовые 3D/4D GPU Шейдеры<br>
+        <kbd>8</kbd>, <kbd>9</kbd>, <kbd>0</kbd>, <kbd>-</kbd>, <kbd>=</kbd> — частицы и геометрия<br>
         <kbd>F</kbd> или <kbd>F11</kbd> — полный экран на проектор<br>
         <kbd>C</kbd> — смена цветовой палитры<br>
         <kbd>B</kbd> — вкл/выкл строб-вспышку на бит<br>
@@ -94,7 +103,16 @@
   <script src="js/palettes.js"></script>
   <script src="js/audio-client.js"></script>
   <script src="js/visualizers/base.js"></script>
+  <script src="js/visualizers/shader-base.js"></script>
+  <!-- GPU Shaders -->
   <script src="js/visualizers/liquid-acid.js"></script>
+  <script src="js/visualizers/black-hole.js"></script>
+  <script src="js/visualizers/quantum-nebula.js"></script>
+  <script src="js/visualizers/fractal-morph.js"></script>
+  <script src="js/visualizers/cyber-city.js"></script>
+  <script src="js/visualizers/biolum-abyss.js"></script>
+  <script src="js/visualizers/kaleido-temple.js"></script>
+  <!-- 2D / 3D Canvas Visualizers -->
   <script src="js/visualizers/neon-ring.js"></script>
   <script src="js/visualizers/synthwave-grid.js"></script>
   <script src="js/visualizers/cosmic-tunnel.js"></script>

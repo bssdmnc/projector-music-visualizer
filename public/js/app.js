@@ -1,6 +1,6 @@
 /**
  * Master Application Controller
- * Coordinates audio telemetry, dual canvases (WebGL + 2D), 12 visualizer presets, hotkeys, and HUD.
+ * Coordinates audio telemetry, dual canvases (WebGL + 2D), 18 visualizer presets (7 AAA Shaders), hotkeys, and HUD.
  */
 
 (function() {
@@ -16,21 +16,31 @@
   // Audio Client
   const audio = new AudioClient();
 
-  // Visualizer presets registry (12 total presets)
-  // Preset 0 uses WebGL; Presets 1..11 use Canvas 2D
+  // 18 Visualizer Presets:
+  // Presets 0..6: High-end GPU GLSL WebGL Shaders
+  // Presets 7..17: Canvas 2D/3D Particle & Geometry engines
   const visualizers = [
+    // --- 7 AAA GPU Raymarched Shaders ---
     new LiquidAcidVisualizer(canvasWebgl),           // 0: 🧪 Кислота
-    new NeonRingVisualizer(canvas2d),               // 1: ⭕ Кольцо
-    new SynthwaveGridVisualizer(canvas2d),          // 2: 🌆 Ретро 80-е
-    new CosmicTunnelVisualizer(canvas2d),           // 3: 🌌 Космос
-    new SpectrumBarsVisualizer(canvas2d),           // 4: 📊 3D Бары
-    new MatrixRainVisualizer(canvas2d),             // 5: 💻 Матрица
-    new GalaxyVortexVisualizer(canvas2d),           // 6: 🌀 Галактика
-    new MandalaKaleidoscopeVisualizer(canvas2d),    // 7: 🌸 Мандала
-    new CyberSphereVisualizer(canvas2d),            // 8: 🌐 3D Сфера
-    new LaserPlasmaVisualizer(canvas2d),            // 9: ⚡ Лазер
-    new FirestormVisualizer(canvas2d),              // 10: 🔥 Огонь
-    new CrystalShardsVisualizer(canvas2d)           // 11: 💎 Кристаллы
+    new BlackHoleVisualizer(canvasWebgl),            // 1: 🕳️ Черная Дыра
+    new QuantumNebulaVisualizer(canvasWebgl),        // 2: 🌌 Квантовая Туманность
+    new FractalMorphVisualizer(canvasWebgl),         // 3: 🔮 4D Фрактал
+    new CyberCityVisualizer(canvasWebgl),            // 4: 🌆 Кибер-Сити
+    new BiolumAbyssVisualizer(canvasWebgl),          // 5: 🪼 Био-Бездна
+    new KaleidoTempleVisualizer(canvasWebgl),        // 6: 🏛️ Калейдо-Храм KIFS
+
+    // --- 11 Canvas 2D/3D Engines ---
+    new NeonRingVisualizer(canvas2d),               // 7: ⭕ Кольцо
+    new SynthwaveGridVisualizer(canvas2d),          // 8: 🌅 Ретровейв
+    new CosmicTunnelVisualizer(canvas2d),           // 9: 🚀 Туннель
+    new SpectrumBarsVisualizer(canvas2d),           // 10: 📊 3D Бары
+    new MatrixRainVisualizer(canvas2d),             // 11: 💻 Матрица
+    new GalaxyVortexVisualizer(canvas2d),           // 12: 🌀 Галактика
+    new MandalaKaleidoscopeVisualizer(canvas2d),    // 13: 🌸 Мандала
+    new CyberSphereVisualizer(canvas2d),            // 14: 🌐 3D Сфера
+    new LaserPlasmaVisualizer(canvas2d),            // 15: ⚡ Лазер
+    new FirestormVisualizer(canvas2d),              // 16: 🔥 Огонь
+    new CrystalShardsVisualizer(canvas2d)           // 17: 💎 Кристаллы
   ];
 
   let currentPresetIndex = 0;
@@ -59,8 +69,8 @@
     
     currentPresetIndex = index;
 
-    // Toggle active canvas
-    if (currentPresetIndex === 0) {
+    // Toggle active canvas: 0..6 are WebGL, 7..17 are 2D
+    if (currentPresetIndex <= 6) {
       canvasWebgl.style.display = 'block';
       canvas2d.style.display = 'none';
     } else {
@@ -132,7 +142,7 @@
     }
   };
 
-  // Connection status & Active Device
+  // Connection status & active device display
   audio.onConnectionChange = (connected) => {
     if (connected) {
       statusDot.classList.add('connected');
@@ -179,19 +189,19 @@
       const idx = parseInt(e.key) - 1;
       if (idx < visualizers.length) setPreset(idx);
     }
-    // '0': Preset 9 (Laser Plasma)
+    // '0': Preset 9
     else if (e.key === '0') {
       setPreset(9);
     }
-    // '-': Preset 10 (Firestorm)
+    // '-': Preset 10
     else if (e.key === '-' || e.key === '_') {
       setPreset(10);
     }
-    // '=': Preset 11 (Crystal Shards)
+    // '=': Preset 11
     else if (e.key === '=' || e.key === '+') {
       setPreset(11);
     }
-    // Space: Next preset
+    // Space: Next preset (cycle through all 18)
     else if (e.code === 'Space') {
       e.preventDefault();
       setPreset((currentPresetIndex + 1) % visualizers.length);
